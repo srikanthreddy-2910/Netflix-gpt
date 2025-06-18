@@ -1,8 +1,8 @@
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import Header from "./Header";
 import { useNavigate } from "react-router-dom";
 import { validation } from "../utils/validation";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { addUser } from "../utils/userSlice";
 import { auth } from "../utils/firebase";
 import { BG_URL } from "../utils/constants";
@@ -11,19 +11,31 @@ import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   updateProfile,
+  onAuthStateChanged,
 } from "firebase/auth";
 
 const LogIn = () => {
   const [signIn, setSignUp] = useState(false);
   const dispatch = useDispatch();
-
   const navigate = useNavigate();
+
+  const user = useSelector((store) => store.user); // ⬅️ Get current user
 
   const [validationError, setValidationError] = useState({
     emailError: null,
     passwordError: null,
     firebaseError: null,
   });
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        navigate("/browse"); // ✅ redirect to browse if logged in
+      }
+    });
+
+    return () => unsubscribe();
+  }, []);
 
   const toggleSignUp = () => {
     setSignUp((prev) => {
